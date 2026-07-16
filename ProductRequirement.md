@@ -1,329 +1,335 @@
-# PRODUCT_REQUIREMENTS.md
+FurniFlow – Furniture Rental Platform (MVP)
 
-## 1. Project Name
+Version: 1.0
 
-**FurniFlow**
+1. Project Overview
+Problem Statement
 
-*Tagline: Rent furniture, not clutter.*
+People who frequently relocate for jobs, education, internships, or personal reasons often hesitate to buy furniture because:
 
-A multi-sided marketplace connecting customers who need furniture temporarily with retailers who own inventory, facilitated by delivery partners and overseen by platform admins.
+Purchasing furniture is expensive.
+Transporting furniture between cities is difficult.
+Selling used furniture causes financial loss.
+Rental options are scattered across multiple local vendors.
 
----
+There is currently no simple platform that connects furniture owners with people who need furniture temporarily while providing secure payments and communication.
 
-## 2. Problem Statement
+Solution
 
-### What problem does this solve?
-Buying furniture is expensive, wasteful, and impractical for people who move often, live in temporary housing, or simply don't want to commit to owning heavy, hard-to-resell items. At the same time, furniture retailers and owners have inventory sitting idle between sales, representing lost revenue potential. FurniFlow solves both sides of this gap: it lets customers rent quality furniture for exactly as long as they need it, and lets retailers monetize furniture as a recurring-revenue asset instead of a one-time sale.
+FurniFlow is a furniture rental marketplace where customers can rent furniture directly from verified sellers.
 
-### Who faces this problem?
-- **Renters/movers**: students, young professionals, expats, and military/corporate relocators who move every 1-3 years and don't want to buy-and-dump furniture each time.
-- **Short-term residents**: people on temporary work assignments, interns, or those in transitional housing (post-divorce, waiting on a new home, etc.).
-- **Budget-conscious households**: people who want quality furniture without a large upfront capital outlay.
-- **Furniture retailers/owners**: small-to-mid-size furniture businesses and warehouses with unsold or underutilized stock who want a new, recurring revenue channel.
+The platform allows:
 
-### Why are existing solutions insufficient?
-- **Traditional furniture stores** are built for one-time purchase, not rental - no lifecycle for returns, condition checks, or recurring billing.
-- **Classified sites** (OLX, Craigslist, Facebook Marketplace) offer secondhand furniture but have no trust layer: no verified retailers, no standardized delivery, no deposit protection, no dispute resolution.
-- **Existing rental furniture companies** are often regional, offline-heavy (phone/email bookings), and lack a self-serve digital experience with real-time tracking, in-app payments, and reviews.
-- **No single platform** currently unifies discovery, booking, payment, logistics, and returns into one trustworthy, end-to-end digital experience for furniture rental specifically.
+Customers to browse and rent furniture
+Sellers to list furniture for rent
+Secure online payments
+Real-time in-app chat between customer and seller
+Booking management
+Reviews and ratings
 
----
+All communication happens inside the application so personal phone numbers remain private.
 
-## 3. Target Users
+2. Users
 
-### Customer
-- **Who they are**: Individuals or households looking to furnish a space (apartment, office, temporary housing) without buying outright.
-- **What they want to accomplish**: Easily browse and compare furniture, book items for a flexible rental duration, get them delivered on time, pay securely, track their order, resolve issues via chat, and return items hassle-free at the end of the rental - with a fair deposit refund.
+The MVP contains 2 user roles.
 
-### Retailer
-- **Who they are**: Furniture businesses, warehouses, or individual owners with inventory (new or gently used) who want to generate recurring rental income instead of relying solely on one-time sales.
-- **What they want to accomplish**: List furniture with photos, pricing, and availability; manage incoming booking requests; track which items are rented out vs. available; verify item condition on return; get paid reliably and on time; build reputation through customer reviews.
+Customer
 
-### Delivery Partner
-- **Who they are**: Individual drivers or logistics agencies (in-house or third-party) responsible for physically moving furniture between retailer, customer, and back.
-- **What they want to accomplish**: Receive clear delivery/pickup assignments with addresses and time windows, update job status in real time, navigate efficiently, and get paid per completed job.
+Can:
 
-### Admin
-- **Who they are**: The FurniFlow platform operations team responsible for the health, trust, and safety of the marketplace.
-- **What they want to accomplish**: Onboard and verify retailers and delivery partners, monitor orders and resolve disputes, manage commissions and payouts, moderate reviews/listings, track platform-wide metrics, and enforce policy violations.
+Register/Login
+Browse furniture
+Search furniture
+View furniture details
+Book furniture
+Pay online
+Chat with sellers
+View booking history
+Review sellers
+Seller
 
----
+Can:
 
-## 4. Core Features
+Register/Login
+Create furniture listings
+Upload furniture images
+Edit/Delete listings
+Accept or reject bookings
+Chat with customers
+View active bookings
+View completed bookings
+View earnings summary
+3. Core Features
+Authentication
 
-Features marked **(V2)** are explicitly deferred - see Section 12 (MVP Scope) for the rationale.
+Both customers and sellers can:
 
-### Customer
-- Register/Login (email, phone OTP)
-- ~~Social login~~ **(V2)**
-- Browse/search furniture by category, price, location, availability
-- Filter & sort (price, rental duration, rating, distance)
-- View furniture details (photos, dimensions, monthly rental price, deposit amount, available quantity)
-- Book furniture (select rental start date + duration in months)
-- Pay online (rental fee + refundable deposit)
-- Track order status in real time (per Booking Status Lifecycle - Section 7)
-- In-app chat with retailer/delivery partner/support
-- Request rental extension
-- Request return / schedule pickup
-- Cancel booking (per cancellation policy)
-- Upload photo evidence if disputing a damage assessment
-- Review & rate retailer and furniture
-- View order history and invoices
-- Manage saved addresses and payment methods
+Register
+Login
+Logout
+Reset password
+JWT Authentication
+Furniture Listings
 
-### Retailer
-- Register/Login + KYC/business verification
-- List furniture (photos, description, category, dimensions, monthly rental price, deposit, total quantity owned)
-- Manage inventory & real-time availability (see Section 5)
-- Accept/reject booking requests
-- View and manage active/past orders
-- Coordinate with assigned delivery partner
-- Verify returned item condition (approve/flag damage, attach photo evidence)
-- Raise damage/deposit deduction claims
-- Receive payouts (view earnings dashboard, commission breakdown)
-- Chat with customers
-- View ratings/reviews received
-- ~~Promote listings (paid featured placement)~~ **(V2)**
+Seller can:
 
-### Delivery Partner
-- Register/Login + document/vehicle verification
-- View assigned delivery/pickup jobs
-- Accept/decline job assignments
-- View pickup and drop-off addresses with navigation
-- Update job status (assigned to picked up to in transit to delivered/returned)
-- Capture proof of delivery/pickup (photo, signature, condition notes)
-- Chat with customer/retailer for coordination
-- View earnings and completed job history
-- Set availability/working hours
+Add furniture
+Upload multiple images
+Enter rental price
+Add security deposit
+Set available quantity
+Choose category
+Edit listing
+Remove listing
 
-### Admin
-- Manage user accounts (customers, retailers, delivery partners) - approve, suspend, ban
-- Verify retailer and delivery partner onboarding documents
-- Monitor all orders and their statuses
-- Resolve disputes: review customer/retailer photo evidence and decide final refund/deduction amount
-- Manage commission rates and platform fees
-- Manage payouts to retailers and delivery partners
-- Moderate listings and reviews (remove fraudulent/inappropriate content)
-- View platform analytics dashboard (GMV, active orders, top categories, churn)
-- ~~Configure featured/promoted listing slots~~ **(V2)**
-- Send platform-wide notifications/announcements
+Customer can:
 
----
+Browse listings
+Filter listings
+Search listings
+View details
+Categories
 
-## 5. Furniture Availability & Inventory Logic
+Example categories:
 
-Every furniture listing tracks quantity at three levels. This distinction drives the database's inventory logic and every "is this bookable?" check.
-
-```
-Total Quantity   = total units the retailer owns and has listed
-Active Rentals   = units currently booked (any status from Confirmed
-                    through Returned, inclusive - i.e. NOT YET
-                    Completed or Cancelled)
-Available Qty    = Total Quantity - Active Rentals
-```
-
-**Example - Retailer's inventory:**
-
-| Item          | Total Qty | Active Rentals | Available |
-|---------------|-----------|-----------------|-----------|
-| Chair         | 5         | 3               | 2         |
-| Sofa          | 2         | 2               | 0         |
-| Dining Table  | 1         | 0               | 1         |
-
-### Rules
-- A booking can only be created if `Available Qty >= 1` at the time of the request.
-- `Active Rentals` increments the moment a booking reaches **Confirmed** status (retailer accepted + payment cleared) - not at earlier "pending" stages, so unpaid/unapproved requests never block inventory.
-- `Active Rentals` decrements when a booking reaches **Completed** or **Cancelled** status.
-- Availability is tracked per unit, not per listing - if 2 of 5 chairs are rented, the other 3 remain independently bookable by different customers with different rental windows.
-- Availability must be checked inside a locking transaction at the moment of checkout to prevent overbooking from concurrent requests (a DB-level constraint/row lock is required, not just an application-level check).
-- Retailers can increase/decrease `Total Quantity` at any time; a decrease can never bring the count below the current `Active Rentals`.
-
----
-
-## 6. Rental Pricing Rules
-
-**v1 supports monthly pricing only.** No daily or weekly rates in the MVP - this keeps proration, billing cycles, and extension logic simple. Daily/weekly tiers are a later consideration once the monthly flow is proven.
-
-**Example listing:**
-
-```
+Sofa
 Chair
-Rs.300/month
+Bed
+Mattress
+Dining Table
+Study Table
+Wardrobe
+TV Unit
+Office Chair
+Booking System
 
-Deposit
-Rs.1000
+Customer selects:
 
-Minimum Rental
-1 month
-```
+Furniture
+Rental start date
+Rental duration (months)
 
-### Rules
-- Every listing has exactly one price: `pricePerMonth`.
-- Every listing has one refundable `depositAmount`, fixed regardless of rental duration.
-- Minimum rental duration = **1 month**. Maximum rental duration = configurable by admin (default 24 months).
-- Customers select rental duration in whole-month increments only (no partial months in v1).
-- Total rental fee at checkout = `pricePerMonth x numberOfMonths`.
-- Total amount charged at checkout = `rental fee + deposit`.
-- Extensions add whole additional months at the same `pricePerMonth` (no mid-rental price changes in v1).
-- Late returns are billed at `pricePerMonth / 30` per day late (see Section 10 - Revenue Model).
+System calculates:
 
----
+Rental Cost
 
-## 7. Booking Status Lifecycle
+Security Deposit
 
-This is the exact, exhaustive set of states a booking can be in. It maps directly to a database enum (`booking_status`) - no other values are permitted.
+=
 
-```
-Pending Payment
-      |
-Pending Retailer Approval
-      |
-Confirmed
-      |
-Delivery Assigned
-      |
-Out for Delivery
-      |
-Delivered
-      |
+Total Amount
+
+After successful payment:
+
+Booking is created.
+
+Seller receives booking request.
+
+Seller can:
+
+Accept booking
+Reject booking
+Payment
+
+Online payment through:
+
+Razorpay
+
+Supported methods:
+
+UPI
+Credit Card
+Debit Card
+Net Banking
+
+Payment status:
+
+Pending
+Success
+Failed
+Chat
+
+Customer and Seller can chat after a booking request is created.
+
+Features:
+
+Real-time messaging
+Booking-specific conversation
+Text messages
+Read receipts
+Online/offline status (optional)
+Message timestamps
+
+Communication happens only inside the application.
+
+Reviews
+
+After booking completion:
+
+Customer can:
+
+Give rating (1–5)
+Write review
+
+Seller's average rating is displayed on profile.
+
+4. Booking Lifecycle
+Browse Furniture
+
+↓
+
+Book Furniture
+
+↓
+
+Payment
+
+↓
+
+Booking Created
+
+↓
+
+Seller Accepts
+
+↓
+
 Rental Active
-      |
-Return Requested
-      |
-Pickup Scheduled
-      |
-Returned
-      |
+
+↓
+
 Completed
 
-Cancelled  (terminal - reachable only from Pending Payment,
-            Pending Retailer Approval, or Confirmed;
-            NOT reachable once status is Delivered or later)
-```
+↓
 
-### Notes
-- `Active Rentals` (Section 5) counts any order in `Confirmed` through `Returned` inclusive.
-- Every status transition should be timestamped and logged (who changed it, when, from what to what) for audit/dispute purposes.
-- Transitions are role-gated: e.g. only the retailer can move `Pending Retailer Approval -> Confirmed`; only the delivery partner can move `Out for Delivery -> Delivered`; only the customer (or an auto-timer) can trigger `Return Requested`.
+Review
 
----
+If seller rejects:
 
-## 8. Damage Policy & Dispute Resolution
+Booking
 
-1. Delivery partner returns the item to the retailer.
-2. Retailer inspects the item and marks it **No Damage** or **Damage Found**, attaching photos as evidence either way.
-3. **If No Damage** -> full deposit is refunded to the customer automatically.
-4. **If Damage Found** -> retailer specifies a proposed deduction amount with photo evidence attached to the claim.
-5. Customer is notified of the claim and can either:
-   - **Accept** the deduction -> refund (deposit - deduction) is processed immediately, or
-   - **Dispute** the claim -> customer uploads their own photo evidence (e.g. delivery-day condition photos) countering the retailer's claim.
-6. If disputed, an **Admin** reviews both sets of evidence and makes the final, binding decision on the refund amount.
-7. Once resolved (auto-approved, customer-accepted, or admin-decided), the deposit refund is processed and the order moves to `Completed`.
+↓
 
-This ensures every damage claim has an evidence trail and a clear resolution path, rather than a one-sided retailer decision.
+Rejected
 
----
+↓
 
-## 9. Rental Flow (End-to-End)
+Refund initiated (future enhancement)
 
-```
-Retailer registers & lists furniture (sets Total Quantity)
-        |
-Customer searches & filters furniture (sees live Available Qty)
-        |
-Customer selects rental duration (whole months) & books item
-        |
-Booking created -> status: Pending Payment
-        |
-Customer pays (rental fee + deposit) -> status: Pending Retailer Approval
-        |
-Retailer accepts -> status: Confirmed (Active Rentals +1, Available Qty -1)
-        |
-Delivery partner assigned -> status: Delivery Assigned
-        |
-Delivery partner picks up item from retailer -> status: Out for Delivery
-        |
-Delivery partner delivers item to customer -> status: Delivered
-        |
-Customer confirms delivery -> status: Rental Active
-        |
-    [Active Rental Period - extensions possible]
-        |
-Customer requests return (or rental period ends) -> status: Return Requested
-        |
-Delivery partner assigned for pickup -> status: Pickup Scheduled
-        |
-Delivery partner picks up item, returns to retailer -> status: Returned
-        |
-Retailer inspects & verifies item condition (see Section 8)
-        |
-Deposit refunded (full, partial, or admin-decided amount)
-        |
-Customer leaves review for retailer
-        |
-Order marked Completed (Active Rentals -1, Available Qty +1)
-        |
-Retailer & delivery partner payouts processed
-```
+MVP Note: Automatic refunds are out of scope for version 1. A rejected booking will simply be marked as rejected. Refund handling can be added in a future version.
 
-*(`Cancelled` can branch off from any pre-`Delivered` status - see Section 7 for exact rules.)*
+5. Search & Filters
 
----
+Customer can search by:
 
-## 10. Revenue Model
+Furniture name
+Category
 
-Items marked **(V2)** are deferred alongside their corresponding feature.
+Filter by:
 
-- **Commission per order**: 10-15% commission on every completed rental transaction, charged to the retailer.
-- **Delivery/logistics fee**: A flat or distance-based fee charged to the customer for pickup and drop-off, a portion of which is FurniFlow's margin on top of the delivery partner's payout.
-- **Late return charges**: Daily late fee (`pricePerMonth / 30` per day) charged to customers who exceed their agreed rental period, split between platform and retailer.
-- **Cancellation fee**: A partial fee retained on late-stage customer cancellations to compensate retailers/delivery partners.
-- ~~Featured retailer listings~~ **(V2)**
-- ~~Premium subscription (Retailer Pro)~~ **(V2)**
+Price range
+Category
+City
+Seller rating
 
-The MVP revenue model deliberately relies on the two most fundamental, always-on levers (commission + delivery fee), so revenue works from day one without needing a critical mass of retailers competing for promoted slots or subscribing to a paid tier.
+Sort by:
 
----
+Lowest price
+Highest price
+Newest
+Highest rated
+6. Seller Dashboard
 
-## 11. Assumptions
+Seller can view:
 
-- Retailers own (or have legal rights to rent out) the furniture they list; FurniFlow does not own inventory.
-- The platform is a pure marketplace/aggregator - it does not manufacture, store, or warehouse furniture itself.
-- Every order is associated with exactly one retailer (no split-retailer orders in v1).
-- Every order is associated with exactly one delivery partner per leg (delivery and return may be the same or different partner).
-- All payments (rental fees, deposits, refunds, payouts) are processed through the platform - no offline/cash transactions.
-- Deposits are refundable by default and only withheld in case of verified damage or loss, following the evidence-based dispute process in Section 8.
-- Delivery partners may be independent contractors or affiliated with a third-party logistics provider; the platform assigns jobs but does not employ them directly.
-- Rental durations are billed in whole months only, bounded by a minimum of 1 month and a maximum configurable by admin (default 24 months).
-- Retailers are responsible for the accuracy of listing information (condition, dimensions, pricing, quantity).
-- Inventory availability (Section 5) is the single source of truth for whether an item can be booked - no listing can be booked below zero available units.
-- The platform operates within a single country/currency in v1, with multi-region support planned as a future enhancement.
+Total Listings
+Active Listings
+Active Bookings
+Completed Bookings
+Total Earnings
+Pending Booking Requests
+7. Customer Dashboard
 
----
+Customer can view:
 
-## 12. MVP Scope (V1 vs. V2)
+Active Rentals
+Upcoming Rentals
+Completed Rentals
+Saved Addresses
+Payment History
+8. Notifications
 
-To keep the MVP shippable, the following features are explicitly **deferred to V2**:
+Users receive notifications for:
 
-| Feature | Why deferred |
-|---|---|
-| Social login | Email/phone OTP alone is enough to ship auth; adding OAuth providers is additive, not blocking. |
-| AI-based furniture recommendations | Needs usage data the platform won't have until after launch. |
-| AR room preview | High effort, no bearing on the core booking/payment/logistics loop. |
-| Featured/promoted retailer listings | A monetization layer that only makes sense once there's real retailer competition for visibility. |
-| Premium subscriptions (Retailer Pro) | Needs a baseline of retailer usage data to design tiers around. |
-| Multi-currency / multi-region support | Adds significant complexity to pricing, payments, and compliance for no v1 benefit in a single-market launch. |
-| Loyalty/rewards program | A retention feature - only useful once there's a repeat-customer base to retain. |
+Booking confirmed
+Booking rejected
+Payment successful
+New chat message
+Booking completed
+9. Non-Functional Requirements
+Security
+JWT Authentication
+Password hashing (bcrypt)
+Protected APIs
+Role-based authorization
+Input validation
+Performance
+Pagination for furniture listings
+Optimized database queries
+Image optimization
+Scalability
 
-**V1 (MVP) is scoped to exactly this:** account creation (email/phone), browse/search, monthly-only booking with live inventory checks, online payment (rental + deposit), the full booking status lifecycle, delivery partner assignment and status updates, in-app chat, the evidence-based return/damage/dispute flow, reviews, and the core admin dashboard (verification, dispute resolution, payouts, analytics). Everything in the table above is out of scope until V1 is live and validated.
+The architecture should allow future addition of:
 
----
+Delivery partners
+Admin dashboard
+Damage claims
+Refund system
+Wishlist
+Coupons
+Multi-city support
 
-## 13. Future Enhancements (Beyond V2)
+without major database redesign.
 
-Longer-horizon ideas not yet scheduled for V2 either:
+10. Technology Stack
+Frontend
+React
+Tailwind CSS
+React Router
+Axios
+Socket.IO Client
+Backend
+Node.js
+Express.js
+MongoDB
+Mongoose
+JWT
+bcrypt
+Socket.IO
+Multer
+Cloudinary
+Razorpay
+11. Future Enhancements
+Delivery partner system
+Live order tracking
+Damage claims
+Refund management
+Wishlist
+Coupon system
+AI furniture recommendations
+Rental extensions
+Multi-language support
+Admin panel
+Analytics dashboard
+12. Success Criteria
 
-- Multi-item cart / bundled rentals from multiple retailers in one checkout
-- Retailer-to-retailer inventory sharing network
-- Insurance add-on for accidental damage protection
-- Daily/weekly pricing tiers (once monthly billing is proven in production)
+The MVP is considered complete when:
+
+Users can register and log in.
+Sellers can create and manage furniture listings.
+Customers can search and book furniture.
+Payments are processed successfully.
+Sellers can accept or reject bookings.
+Customers and sellers can chat in real time.
+Customers can leave reviews after completed bookings.
+The application is responsive and works across desktop and mobile devices.
