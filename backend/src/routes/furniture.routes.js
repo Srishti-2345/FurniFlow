@@ -2,27 +2,19 @@ const express = require("express");
 
 const router = express.Router();
 
-const protect = require("../middleware/auth.middleware");
-const sellerOnly = require("../middleware/seller.middleware");
+const protect = require("../middlewares/auth.middleware");
+const authorize = require("../middlewares/authorize");
 
 const {
-    createFurniture,
-    getMyFurniture,
-    getFurnitureById,
-    updateFurniture,
-    deleteFurniture,
+  createFurniture,
 } = require("../controllers/furniture.controller");
 
-// Seller Routes
-router.post("/", protect, sellerOnly, createFurniture);
-
-router.get("/me", protect, sellerOnly, getMyFurniture);
-
-router.patch("/:id", protect, sellerOnly, updateFurniture);
-
-router.delete("/:id", protect, sellerOnly, deleteFurniture);
-
-// Public Route
-router.get("/:id", getFurnitureById);
+// Create Furniture
+router.post(
+  "/",
+  protect,
+  authorize("seller"),
+  createFurniture
+);
 
 module.exports = router;

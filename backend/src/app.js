@@ -6,6 +6,7 @@ const app=express();
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/users.routes");
 const furnitureRoutes = require("./routes/furniture.routes");
+const sellerRoutes = require("./routes/seller.routes");
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cors({
@@ -23,5 +24,6 @@ app.get("/", (req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/furniture", furnitureRoutes);
+app.use("/api/v1/seller", sellerRoutes);
 
 module.exports = app;
