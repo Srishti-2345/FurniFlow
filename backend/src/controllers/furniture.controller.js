@@ -156,3 +156,143 @@ exports.getFurnitureById = async (req, res) => {
     });
   }
 };
+// GET MY LISTINGS
+exports.getMyFurniture = async (req, res) => {
+  try {
+    const furniture = await Furniture.find({
+      seller: req.user._id,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: furniture.length,
+      furniture,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// UPDATE FURNITURE
+exports.updateFurniture = async (req, res) => {
+  try {
+    const furniture = await Furniture.findById(req.params.id);
+
+    if (!furniture) {
+      return res.status(404).json({
+        success: false,
+        message: "Furniture not found",
+      });
+    }
+
+    if (furniture.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this furniture",
+      });
+    }
+
+    const updatedFurniture = await Furniture.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Furniture updated successfully",
+      furniture: updatedFurniture,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// UPDATE STATUS
+exports.updateFurnitureStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["active", "inactive"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    const furniture = await Furniture.findById(req.params.id);
+
+    if (!furniture) {
+      return res.status(404).json({
+        success: false,
+        message: "Furniture not found",
+      });
+    }
+
+    if (furniture.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    furniture.status = status;
+
+    await furniture.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Furniture status updated",
+      furniture,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// DELETE FURNITURE (SOFT DELETE)
+exports.deleteFurniture = async (req, res) => {
+  try {
+    const furniture = await Furniture.findById(req.params.id);
+
+    if (!furniture) {
+      return res.status(404).json({
+        success: false,
+        message: "Furniture not found",
+      });
+    }
+
+    if (furniture.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    furniture.status = "removed";
+
+    await furniture.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Furniture removed successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

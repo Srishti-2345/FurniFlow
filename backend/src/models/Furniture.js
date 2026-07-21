@@ -91,10 +91,10 @@ const furnitureSchema = new mongoose.Schema(
     ],
 
     status: {
-      type: String,
-      enum: ["active", "inactive"],
-      default: "active",
-    },
+    type: String,
+    enum: ["active", "inactive", "removed"],
+    default: "active",
+},
   },
   {
     timestamps: true,

@@ -6,17 +6,15 @@ const protect = require("../middleware/auth.middleware");
 const authorize = require("../middleware/authorize.middleware");
 
 const {
-  createFurniture,
-  getAllFurniture,
-  getFurnitureById,
+    createFurniture,
+    getAllFurniture,
+    getFurnitureById,
+    getMyFurniture,
+    updateFurniture,
+    updateFurnitureStatus,
+    deleteFurniture,
 } = require("../controllers/furniture.controller");
 
-// Public Routes
-const {
-    validateFurniture,
-} = require("../validators/furniture.validator");
-router.get("/", getAllFurniture);
-router.get("/:id", getFurnitureById);
 
 // Seller Route
 router.post(
@@ -26,5 +24,35 @@ router.post(
   validateFurniture,
   createFurniture
 );
+// Seller Routes
+router.get(
+    "/my-listings",
+    protect,
+    authorize("seller"),
+    getMyFurniture
+);
+
+router.patch(
+    "/:id",
+    protect,
+    authorize("seller"),
+    updateFurniture
+);
+
+router.patch(
+    "/:id/status",
+    protect,
+    authorize("seller"),
+    updateFurnitureStatus
+);
+
+router.delete(
+    "/:id",
+    protect,
+    authorize("seller"),
+    deleteFurniture
+);
+router.get("/", getAllFurniture);
+router.get("/:id", getFurnitureById);
 
 module.exports = router;
