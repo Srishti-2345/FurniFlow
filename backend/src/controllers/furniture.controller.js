@@ -1,7 +1,8 @@
 const Furniture = require("../models/furniture.model");
 
 const Furniture = require("../models/furniture.model");
-
+const streamifier = require("streamifier");
+const cloudinary = require("../config/cloudinary");
 // CREATE FURNITURE
 exports.createFurniture = async (req, res) => {
   try {
@@ -47,82 +48,24 @@ exports.createFurniture = async (req, res) => {
     });
   }
 };
+const Furniture = require("../models/furniture.model");
+
+// =====================================
 // GET ALL FURNITURE
+// =====================================
+
 exports.getAllFurniture = async (req, res) => {
   try {
-    const {
-      keyword,
-      category,
-      city,
-      minPrice,
-      maxPrice,
-      sort,
-    } = req.query;
-
-    const query = {
+    const furniture = await Furniture.find({
       status: "active",
       isAvailable: true,
-    };
-
-    // Search by title
-    if (keyword) {
-      query.title = {
-        $regex: keyword,
-        $options: "i",
-      };
-    }
-
-    // Category filter
-    if (category) {
-      query.category = category;
-    }
-
-    // City filter
-    if (city) {
-      query.city = city;
-    }
-
-    // Price filter
-    if (minPrice || maxPrice) {
-      query.pricePerMonth = {};
-
-      if (minPrice) {
-        query.pricePerMonth.$gte = Number(minPrice);
-      }
-
-      if (maxPrice) {
-        query.pricePerMonth.$lte = Number(maxPrice);
-      }
-    }
-
-    let furnitureQuery = Furniture.find(query).populate(
-      "seller",
-      "fullName email"
-    );
-
-    // Sorting
-    if (sort === "price_asc") {
-      furnitureQuery = furnitureQuery.sort({
-        pricePerMonth: 1,
-      });
-    } else if (sort === "price_desc") {
-      furnitureQuery = furnitureQuery.sort({
-        pricePerMonth: -1,
-      });
-    } else {
-      furnitureQuery = furnitureQuery.sort({
-        createdAt: -1,
-      });
-    }
-
-    const furniture = await furnitureQuery;
+    }).populate("seller", "fullName email");
 
     res.status(200).json({
       success: true,
       count: furniture.length,
-      furniture,
+      data: furniture,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -131,11 +74,16 @@ exports.getAllFurniture = async (req, res) => {
   }
 };
 
+// =====================================
 // GET SINGLE FURNITURE
+// =====================================
+
 exports.getFurnitureById = async (req, res) => {
   try {
-    const furniture = await Furniture.findById(req.params.id)
-      .populate("seller", "fullName email phoneNumber");
+    const furniture = await Furniture.findById(req.params.id).populate(
+      "seller",
+      "fullName email phone"
+    );
 
     if (!furniture) {
       return res.status(404).json({
@@ -146,9 +94,93 @@ exports.getFurnitureById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      furniture,
+      data: furniture,
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
+// =====================================
+// SEARCH FURNITURE
+// =====================================
+
+exports.searchFurniture = async (req, res) => {
+  try {
+    const {
+      title,
+      category,
+      city,
+      minPrice,
+      maxPrice,
+      sort,
+    } = req.query;
+
+    let query = {
+      status: "active",
+      isAvailable: true,
+    };
+
+    if (title) {
+      query.title = {
+        $regex: title,
+        $options: "i",
+      };
+    }
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (city) {
+      query.city = city;
+    }
+
+    if (minPrice || maxPrice) {
+      query.pricePerMonth = {};
+
+      if (minPrice)
+        query.pricePerMonth.$gte = Number(minPrice);
+
+      if (maxPrice)
+        query.pricePerMonth.$lte = Number(maxPrice);
+    }
+
+    let furnitureQuery = Furniture.find(query).populate(
+      "seller",
+      "fullName email"
+    );
+
+    // Sorting
+
+    if (sort === "priceLow") {
+      furnitureQuery = furnitureQuery.sort({
+        pricePerMonth: 1,
+      });
+    }
+
+    else if (sort === "priceHigh") {
+      furnitureQuery = furnitureQuery.sort({
+        pricePerMonth: -1,
+      });
+    }
+
+    else if (sort === "newest") {
+      furnitureQuery = furnitureQuery.sort({
+        createdAt: -1,
+      });
+    }
+
+    const furniture = await furnitureQuery;
+
+    res.status(200).json({
+      success: true,
+      count: furniture.length,
+      data: furniture,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -295,4 +327,76 @@ exports.deleteFurniture = async (req, res) => {
       message: error.message,
     });
   }
+};
+exports.uploadFurnitureImages = async (req, res) => {
+    try {
+
+        const furniture = await Furniture.findById(req.params.id);
+
+        if (!furniture) {
+            return res.status(404).json({
+                success: false,
+                message: "Furniture not found",
+            });
+        }
+
+        if (furniture.seller.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Please upload at least one image",
+            });
+        }
+
+        const uploadedImages = [];
+
+        for (const file of req.files) {
+
+            const result = await new Promise((resolve, reject) => {
+
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: "FurniFlow",
+                    },
+                    (error, result) => {
+                        if (error) return reject(error);
+                        resolve(result);
+                    }
+                );
+
+                streamifier.createReadStream(file.buffer).pipe(uploadStream);
+
+            });
+
+            uploadedImages.push({
+                url: result.secure_url,
+                publicId: result.public_id,
+            });
+
+        }
+
+        furniture.images.push(...uploadedImages);
+
+        await furniture.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Images uploaded successfully",
+            images: furniture.images,
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
 };

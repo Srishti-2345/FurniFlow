@@ -1,10 +1,10 @@
 const express = require("express");
 
 const router = express.Router();
-
+const upload = require("../middleware/upload.middleware");
 const protect = require("../middleware/auth.middleware");
 const authorize = require("../middleware/authorize.middleware");
-
+const validateFurniture = require("../middleware/validateFurniture.middleware");
 const {
     createFurniture,
     getAllFurniture,
@@ -13,6 +13,8 @@ const {
     updateFurniture,
     updateFurnitureStatus,
     deleteFurniture,
+    searchFurniture,
+    uploadFurnitureImages
 } = require("../controllers/furniture.controller");
 
 
@@ -53,6 +55,14 @@ router.delete(
     deleteFurniture
 );
 router.get("/", getAllFurniture);
+router.get("/search", searchFurniture);
 router.get("/:id", getFurnitureById);
+router.post(
+    "/:id/images",
+    protect,
+    authorize("seller"),
+    upload.array("images", 8),
+    uploadFurnitureImages
+);
 
 module.exports = router;
