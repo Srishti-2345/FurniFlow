@@ -8,7 +8,7 @@ const userRoutes = require("./routes/users.routes");
 const furnitureRoutes = require("./routes/furniture.routes");
 const sellerRoutes = require("./routes/seller.routes");
 const bookingRoutes = require("./routes/booking.routes");
-
+const chatRoutes = require("./routes/chat.routes");
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cors({
@@ -28,5 +28,5 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/furniture", furnitureRoutes);
 app.use("/api/v1/seller", sellerRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
-
+app.use("/api/chat", chatRoutes);
 module.exports = app;
