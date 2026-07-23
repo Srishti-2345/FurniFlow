@@ -77,7 +77,11 @@ const getImage = (product) =>
 function App() {
   const isProductRoute = window.location.pathname.startsWith('/furniture/')
   const isFurnitureRoute = window.location.pathname === '/furniture'
+  const isBookingRoute = window.location.pathname === '/bookings/new'
+  const isBookingsDashboardRoute = window.location.pathname === '/bookings'
 
+  if (isBookingRoute) return <BookingPage />
+  if (isBookingsDashboardRoute) return <BookingsDashboardPage />
   if (isProductRoute) return <FurnitureDetailPage />
   return isFurnitureRoute ? <FurniturePage /> : <HomePage />
 }
@@ -417,6 +421,181 @@ function FurnitureDetailPage() {
       </section>
 
       <section className="detail-assurance"><div><Sparkles size={19} /><span><strong>Handpicked quality</strong>Every piece is inspected before delivery.</span></div><div><ShoppingBag size={19} /><span><strong>Flexible rentals</strong>Keep it for as long as your home needs it.</span></div><div><Heart size={19} /><span><strong>Here to help</strong>Thoughtful support from browse to return.</span></div></section>
+      <footer><a className="brand footer-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><p>Furniture that feels like home.</p><span>© 2026 FurniFlow</span></footer>
+    </main>
+  )
+}
+
+function BookingPage() {
+  const furnitureId = new URLSearchParams(window.location.search).get('furniture')
+  const [product, setProduct] = useState(() => fallbackProducts.find((item) => item._id === furnitureId) || fallbackProducts[0])
+  const [rentalMonths, setRentalMonths] = useState(3)
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [isLoading, setIsLoading] = useState(Boolean(furnitureId))
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!furnitureId) return undefined
+
+    const controller = new AbortController()
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+
+    async function loadProduct() {
+      try {
+        const response = await fetch(`${apiUrl}/furniture/${furnitureId}`, { signal: controller.signal })
+        if (!response.ok) throw new Error('Could not load furniture')
+        const result = await response.json()
+        if (result.data) setProduct(result.data)
+      } catch (loadError) {
+        if (loadError.name !== 'AbortError') setError('This piece could not be loaded. Please return to the collection and choose an available item.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadProduct()
+    return () => controller.abort()
+  }, [furnitureId])
+
+  const monthlyPrice = Number(product.pricePerMonth || 0)
+  const deposit = Number(product.securityDeposit || 0)
+  const total = monthlyPrice * Number(rentalMonths) + deposit
+
+  const submitBooking = async (event) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    const token = localStorage.getItem('token')
+
+    if (!token) {
+      setError('Please sign in as a customer before reserving furniture.')
+      return
+    }
+
+    if (!furnitureId || !/^[a-f\d]{24}$/i.test(furnitureId)) {
+      setError('Choose a live furniture listing before submitting a reservation.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+      const response = await fetch(`${apiUrl}/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ furnitureId, rentalMonths: Number(rentalMonths), deliveryAddress, startDate }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'Your reservation could not be created.')
+      setMessage('Reservation request received. The owner will confirm availability shortly.')
+    } catch (submitError) {
+      setError(submitError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <main className="booking-page">
+      <header className="catalog-header"><a className="brand catalog-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><a className="back-link" href={furnitureId ? `/furniture/${furnitureId}` : '/furniture'}>← Back to piece</a></header>
+      <section className="booking-intro"><p className="eyebrow dark">Reserve your piece</p><h1>A few details, then<br /><em>it’s on its way.</em></h1><p>Your reservation is sent to the owner for confirmation. No payment is taken today.</p></section>
+      <section className="booking-layout">
+        <form className="booking-form" onSubmit={submitBooking}>
+          <div className="form-heading"><span>01</span><div><h2>Rental details</h2><p>Choose a rental period that works for you.</p></div></div>
+          <div className="field-group"><label htmlFor="months">Rental period</label><select id="months" value={rentalMonths} onChange={(event) => setRentalMonths(event.target.value)}><option value="1">1 month</option><option value="3">3 months</option><option value="6">6 months</option><option value="12">12 months</option></select></div>
+          <div className="field-group"><label htmlFor="start-date">Preferred delivery date</label><input id="start-date" type="date" min={new Date().toISOString().split('T')[0]} value={startDate} onChange={(event) => setStartDate(event.target.value)} required /></div>
+          <div className="form-heading address-heading"><span>02</span><div><h2>Delivery address</h2><p>We’ll use this to coordinate delivery after confirmation.</p></div></div>
+          <div className="field-group"><label htmlFor="address">Full address</label><textarea id="address" value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="House or flat number, street, area, city and PIN code" rows="4" required /></div>
+          {error && <p className="form-message error-message">{error}</p>}{message && <p className="form-message success-message">{message}</p>}
+          <button className="button button-dark booking-submit" type="submit" disabled={isSubmitting || isLoading}>{isSubmitting ? 'Sending request…' : 'Request reservation'} <ArrowRight size={17} /></button>
+        </form>
+
+        <aside className="booking-summary"><p className="eyebrow dark">Your selection</p><div className="booking-product"><img src={getImage(product)} alt="" /><div><h3>{product.title}</h3><p>{product.category} · {product.city || 'Available now'}</p></div></div><div className="summary-row"><span>₹{monthlyPrice.toLocaleString('en-IN')} × {rentalMonths} month{Number(rentalMonths) > 1 ? 's' : ''}</span><strong>₹{(monthlyPrice * Number(rentalMonths)).toLocaleString('en-IN')}</strong></div><div className="summary-row"><span>Refundable security deposit</span><strong>₹{deposit.toLocaleString('en-IN')}</strong></div><div className="summary-total"><span>Total before confirmation</span><strong>₹{total.toLocaleString('en-IN')}</strong></div><p className="summary-note">Your final total and delivery timing are confirmed by the owner before payment.</p></aside>
+      </section>
+      <footer><a className="brand footer-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><p>Furniture that feels like home.</p><span>© 2026 FurniFlow</span></footer>
+    </main>
+  )
+}
+
+function BookingsDashboardPage() {
+  const [bookings, setBookings] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('All')
+  const [cancellingId, setCancellingId] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const token = localStorage.getItem('token')
+
+    async function loadBookings() {
+      if (!token) {
+        setError('Sign in as a customer to view and manage your reservations.')
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+        const response = await fetch(`${apiUrl}/bookings/my-bookings`, {
+          signal: controller.signal,
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const result = await response.json()
+        if (!response.ok) throw new Error(result.message || 'Could not load your bookings.')
+        setBookings(result.bookings || [])
+      } catch (loadError) {
+        if (loadError.name !== 'AbortError') setError(loadError.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadBookings()
+    return () => controller.abort()
+  }, [])
+
+  const filteredBookings = activeTab === 'All' ? bookings : bookings.filter((booking) => booking.status === activeTab.toLowerCase())
+  const activeBookings = bookings.filter((booking) => ['pending', 'confirmed', 'active'].includes(booking.status)).length
+  const completedBookings = bookings.filter((booking) => booking.status === 'completed').length
+
+  const cancelBooking = async (bookingId) => {
+    const token = localStorage.getItem('token')
+    setCancellingId(bookingId)
+    setError('')
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+      const response = await fetch(`${apiUrl}/bookings/${bookingId}/cancel`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'Could not cancel this booking.')
+      setBookings((currentBookings) => currentBookings.map((booking) => booking._id === bookingId ? { ...booking, status: 'cancelled' } : booking))
+    } catch (cancelError) {
+      setError(cancelError.message)
+    } finally {
+      setCancellingId('')
+    }
+  }
+
+  const formatDate = (date) => date ? new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date)) : 'To be confirmed'
+
+  return (
+    <main className="dashboard-page">
+      <header className="catalog-header"><a className="brand catalog-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><nav aria-label="Customer navigation"><a href="/">Home</a><a href="/furniture">Shop</a><a className="active" href="/bookings">My rentals</a></nav><a className="catalog-bag" href="/furniture">Browse pieces <ArrowRight size={16} /></a></header>
+      <section className="dashboard-intro"><p className="eyebrow dark">Customer space</p><h1>Welcome back to<br /><em>your home story.</em></h1><p>Follow your reservations, manage active rentals, and find your next favourite piece.</p></section>
+      <section className="dashboard-content">
+        <div className="dashboard-stats"><div><span>Active reservations</span><strong>{activeBookings}</strong><p>Awaiting or currently in your home</p></div><div><span>Completed rentals</span><strong>{completedBookings}</strong><p>Pieces you have enjoyed so far</p></div><div><span>Need a new piece?</span><strong>Explore</strong><a href="/furniture">Browse collection <ArrowRight size={15} /></a></div></div>
+        <div className="dashboard-heading"><div><p className="eyebrow dark">Your reservations</p><h2>Rental history</h2></div><div className="booking-tabs">{['All', 'pending', 'confirmed', 'active', 'completed'].map((tab) => <button type="button" className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)} key={tab}>{tab}</button>)}</div></div>
+        {error && <div className="dashboard-message">{error} {error.includes('Sign in') && <a href="/">Return home</a>}</div>}
+        {isLoading ? <p className="dashboard-loading">Loading your rentals…</p> : filteredBookings.length ? <div className="booking-list">{filteredBookings.map((booking) => {
+          const furniture = booking.furniture || {}
+          const status = booking.status || 'pending'
+          return <article className="booking-card" key={booking._id}><div className="booking-card-image"><img src={getImage(furniture)} alt={furniture.title || 'Furniture'} /></div><div className="booking-card-main"><div className="booking-card-title"><div><p className="booking-status" data-status={status}>{status}</p><h3>{furniture.title || 'Furniture reservation'}</h3><p>{furniture.category || 'Furniture'} · {furniture.city || 'Delivery address on file'}</p></div><strong>₹{Number(booking.totalAmount || 0).toLocaleString('en-IN')}</strong></div><div className="booking-dates"><div><span>Rental starts</span><strong>{formatDate(booking.startDate)}</strong></div><div><span>Rental ends</span><strong>{formatDate(booking.endDate)}</strong></div><div><span>Duration</span><strong>{booking.rentalMonths} month{booking.rentalMonths > 1 ? 's' : ''}</strong></div></div><div className="booking-card-actions">{status === 'pending' ? <button type="button" className="cancel-booking" disabled={cancellingId === booking._id} onClick={() => cancelBooking(booking._id)}>{cancellingId === booking._id ? 'Cancelling…' : 'Cancel request'}</button> : <span>{status === 'confirmed' ? 'Your owner is coordinating delivery.' : status === 'active' ? 'Enjoy your piece. We hope it feels at home.' : 'This rental is complete.'}</span>}</div></div></article>
+        })}</div> : !error && <div className="empty-state booking-empty"><h2>No reservations here yet.</h2><p>When you find a piece you love, your rental details will live right here.</p><a className="button button-dark" href="/furniture">Explore furniture <ArrowRight size={17} /></a></div>}
+      </section>
       <footer><a className="brand footer-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><p>Furniture that feels like home.</p><span>© 2026 FurniFlow</span></footer>
     </main>
   )
