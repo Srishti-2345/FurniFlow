@@ -9,6 +9,8 @@ const furnitureRoutes = require("./routes/furniture.routes");
 const sellerRoutes = require("./routes/seller.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const chatRoutes = require("./routes/chat.routes");
+const reviewRoutes = require("./routes/review.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cors({
@@ -29,4 +31,6 @@ app.use("/api/v1/furniture", furnitureRoutes);
 app.use("/api/v1/seller", sellerRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 module.exports = app;
