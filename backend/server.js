@@ -2,7 +2,7 @@ const http = require("http");
 
 const app = require("./src/app");
 
-const connectDB = require("./src/config/db");
+const connectDB = require("./src/config/database");
 
 const initializeSocket = require("./src/socket/socket");
 

@@ -9,7 +9,7 @@ const furnitureRoutes = require("./routes/furniture.routes");
 const sellerRoutes = require("./routes/seller.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const chatRoutes = require("./routes/chat.routes");
-const reviewRoutes = require("./routes/review.routes");
+const reviewRoutes = require("./routes/review.rotes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));

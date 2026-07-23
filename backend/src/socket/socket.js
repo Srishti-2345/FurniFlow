@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const Conversation = require("../models/conversation.model");
 const Message = require("../models/message.model");
-const User = require("../models/user.model");
+const User = require("../models/User");
 
 const onlineUsers = new Map();
 

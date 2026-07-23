@@ -1,6 +1,6 @@
-const Furniture = require("../models/furniture.model");
+const Furniture = require("../models/Furniture");
 const Booking = require("../models/booking.model");
-const User = require("../models/user.model");
+const User = require("../models/User");
 
 exports.getSellerDashboard = async (req, res) => {
   try {

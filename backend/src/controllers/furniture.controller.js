@@ -1,6 +1,4 @@
-const Furniture = require("../models/furniture.model");
-
-const Furniture = require("../models/furniture.model");
+const Furniture = require("../models/Furniture");
 const streamifier = require("streamifier");
 const cloudinary = require("../config/cloudinary");
 // CREATE FURNITURE
@@ -48,8 +46,6 @@ exports.createFurniture = async (req, res) => {
     });
   }
 };
-const Furniture = require("../models/furniture.model");
-
 // =====================================
 // GET ALL FURNITURE
 // =====================================

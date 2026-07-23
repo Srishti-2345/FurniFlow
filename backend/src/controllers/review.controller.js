@@ -1,6 +1,6 @@
 const Review = require("../models/review.model");
 const Booking = require("../models/booking.model");
-const User = require("../models/user.model");
+const User = require("../models/User");
 
 // Helper Function
 const updateSellerRating = async (sellerId) => {
