@@ -95,6 +95,10 @@ const furnitureSchema = new mongoose.Schema(
     enum: ["active", "inactive", "removed"],
     default: "active",
 },
+    isAvailable: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

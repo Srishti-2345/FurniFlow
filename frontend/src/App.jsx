@@ -79,7 +79,16 @@ function App() {
   const isFurnitureRoute = window.location.pathname === '/furniture'
   const isBookingRoute = window.location.pathname === '/bookings/new'
   const isBookingsDashboardRoute = window.location.pathname === '/bookings'
+  const isLoginRoute = window.location.pathname === '/login'
+  const isRegisterRoute = window.location.pathname === '/register'
+  const isSellerListingsRoute = window.location.pathname === '/seller/listings'
+  const isSellerNewListingRoute = window.location.pathname === '/seller/listings/new'
+  const isSellerBookingsRoute = window.location.pathname === '/seller/bookings'
 
+  if (isSellerBookingsRoute) return <SellerBookingsPage />
+  if (isSellerNewListingRoute) return <SellerListingFormPage />
+  if (isSellerListingsRoute) return <SellerListingsPage />
+  if (isLoginRoute || isRegisterRoute) return <AuthPage mode={isRegisterRoute ? 'register' : 'login'} />
   if (isBookingRoute) return <BookingPage />
   if (isBookingsDashboardRoute) return <BookingsDashboardPage />
   if (isProductRoute) return <FurnitureDetailPage />
@@ -599,6 +608,116 @@ function BookingsDashboardPage() {
       <footer><a className="brand footer-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><p>Furniture that feels like home.</p><span>© 2026 FurniFlow</span></footer>
     </main>
   )
+}
+
+function AuthPage({ mode }) {
+  const isRegistering = mode === 'register'
+  const [formData, setFormData] = useState({ fullName: '', email: '', phone: '', password: '', role: 'customer' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+
+  const updateField = (event) => setFormData((currentData) => ({ ...currentData, [event.target.name]: event.target.value }))
+
+  const submitAuth = async (event) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    setIsSubmitting(true)
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+      const response = await fetch(`${apiUrl}/auth/${isRegistering ? 'register' : 'login'}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(isRegistering ? formData : { email: formData.email, password: formData.password }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'Something went wrong. Please try again.')
+
+      if (isRegistering) {
+        setMessage('Your account is ready. Sign in to start reserving furniture.')
+      } else {
+        localStorage.setItem('token', result.token)
+        localStorage.setItem('user', JSON.stringify(result.user))
+        window.location.assign(result.user.role === 'customer' ? '/bookings' : '/seller/listings')
+      }
+    } catch (authError) {
+      setError(authError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <main className="auth-page">
+      <section className="auth-showcase"><a className="brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><div><p className="eyebrow"><Sparkles size={15} /> A more considered home</p><h1>Furniture that makes space for <em>living.</em></h1><p>Find pieces to love now, with the freedom to make them yours for as long as you need.</p></div><span className="auth-credit">FurniFlow · Modern furniture rental</span></section>
+      <section className="auth-form-section"><a className="auth-mobile-brand brand catalog-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><div className="auth-form-wrap"><p className="eyebrow dark">{isRegistering ? 'Create your account' : 'Welcome back'}</p><h2>{isRegistering ? 'Start making space.' : 'Good to see you.'}</h2><p className="auth-subtitle">{isRegistering ? 'Create an account to reserve the pieces that feel right for home.' : 'Sign in to manage your rentals and discover your next piece.'}</p><form onSubmit={submitAuth}>
+        {isRegistering && <><div className="field-group"><label htmlFor="fullName">Full name</label><input id="fullName" name="fullName" value={formData.fullName} onChange={updateField} autoComplete="name" required /></div><div className="field-group"><label htmlFor="phone">Phone number</label><input id="phone" name="phone" value={formData.phone} onChange={updateField} autoComplete="tel" required /></div></>}
+        <div className="field-group"><label htmlFor="email">Email address</label><input id="email" type="email" name="email" value={formData.email} onChange={updateField} autoComplete="email" required /></div><div className="field-group"><label htmlFor="password">Password</label><input id="password" type="password" name="password" value={formData.password} onChange={updateField} autoComplete={isRegistering ? 'new-password' : 'current-password'} minLength="6" required /></div>
+        {isRegistering && <div className="role-choice"><span>I want to</span><label><input type="radio" name="role" value="customer" checked={formData.role === 'customer'} onChange={updateField} /> Rent furniture</label><label><input type="radio" name="role" value="seller" checked={formData.role === 'seller'} onChange={updateField} /> List furniture</label></div>}
+        {error && <p className="form-message error-message">{error}</p>}{message && <p className="form-message success-message">{message} <a href="/login">Sign in now</a></p>}
+        <button className="button button-dark auth-submit" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Please wait…' : isRegistering ? 'Create account' : 'Sign in'} <ArrowRight size={17} /></button>
+      </form><p className="auth-switch">{isRegistering ? 'Already have an account?' : 'New to FurniFlow?'} <a href={isRegistering ? '/login' : '/register'}>{isRegistering ? 'Sign in' : 'Create an account'}</a></p></div></section>
+    </main>
+  )
+}
+
+function SellerListingsPage() {
+  const [listings, setListings] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const token = localStorage.getItem('token')
+    async function loadListings() {
+      if (!token) { setError('Sign in as a seller to manage your furniture.'); setIsLoading(false); return }
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+        const response = await fetch(`${apiUrl}/furniture/my-listings`, { signal: controller.signal, headers: { Authorization: `Bearer ${token}` } })
+        const result = await response.json()
+        if (!response.ok) throw new Error(result.message || 'Could not load your listings.')
+        setListings(result.furniture || [])
+      } catch (loadError) { if (loadError.name !== 'AbortError') setError(loadError.message) } finally { setIsLoading(false) }
+    }
+    loadListings(); return () => controller.abort()
+  }, [])
+
+  const updateStatus = async (listing) => {
+    const token = localStorage.getItem('token')
+    const nextStatus = listing.status === 'active' ? 'inactive' : 'active'
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+      const response = await fetch(`${apiUrl}/furniture/${listing._id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ status: nextStatus }) })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'Could not update this listing.')
+      setListings((current) => current.map((item) => item._id === listing._id ? { ...item, status: nextStatus } : item))
+    } catch (statusError) { setError(statusError.message) }
+  }
+
+  const activeCount = listings.filter((listing) => listing.status === 'active').length
+  return <main className="seller-page"><header className="catalog-header"><a className="brand catalog-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><nav><a href="/">Home</a><a className="active" href="/seller/listings">Seller studio</a><a href="/seller/bookings">Requests</a></nav><a className="button button-dark header-button" href="/seller/listings/new">Add a piece <ArrowRight size={15} /></a></header><section className="seller-intro"><p className="eyebrow dark">Seller studio</p><h1>Your furniture,<br /><em>beautifully managed.</em></h1><p>Keep your listings current and make it easy for the right home to find them.</p></section><section className="seller-content"><div className="seller-stats"><div><span>Total listings</span><strong>{listings.length}</strong></div><div><span>Live right now</span><strong>{activeCount}</strong></div><div><span>Paused</span><strong>{listings.length - activeCount}</strong></div></div><div className="seller-list-heading"><div><p className="eyebrow dark">Your inventory</p><h2>Furniture listings</h2></div><a className="button button-dark" href="/seller/listings/new">Add furniture <ArrowRight size={16} /></a></div>{error && <p className="dashboard-message">{error}</p>}{isLoading ? <p className="dashboard-loading">Loading your inventory…</p> : listings.length ? <div className="seller-list">{listings.map((listing) => <article className="seller-card" key={listing._id}><img src={getImage(listing)} alt={listing.title} /><div><p className="booking-status" data-status={listing.status}>{listing.status}</p><h3>{listing.title}</h3><p>{listing.category} · {listing.city} · ₹{Number(listing.pricePerMonth).toLocaleString('en-IN')}/month</p></div><div className="seller-card-actions"><span>{listing.quantity} available</span><button type="button" onClick={() => updateStatus(listing)}>{listing.status === 'active' ? 'Pause listing' : 'Make live'}</button></div></article>)}</div> : !error && <div className="empty-state"><h2>Your studio is ready.</h2><p>Add your first piece and let customers discover it.</p><a className="button button-dark" href="/seller/listings/new">Add your first piece <ArrowRight size={17} /></a></div>}</section><footer><a className="brand footer-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><p>Furniture that feels like home.</p><span>© 2026 FurniFlow</span></footer></main>
+}
+
+function SellerBookingsPage() {
+  const [bookings, setBookings] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [updatingId, setUpdatingId] = useState('')
+  useEffect(() => { const controller = new AbortController(); const token = localStorage.getItem('token'); async function loadBookings() { if (!token) { setError('Sign in as a seller to view booking requests.'); setIsLoading(false); return } try { const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'; const response = await fetch(`${apiUrl}/bookings/seller-bookings`, { signal: controller.signal, headers: { Authorization: `Bearer ${token}` } }); const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Could not load booking requests.'); setBookings(result.bookings || []) } catch (loadError) { if (loadError.name !== 'AbortError') setError(loadError.message) } finally { setIsLoading(false) } } loadBookings(); return () => controller.abort() }, [])
+  const nextActions = { pending: [{ label: 'Confirm request', status: 'confirmed' }, { label: 'Cancel request', status: 'cancelled' }], confirmed: [{ label: 'Mark rental active', status: 'active' }, { label: 'Cancel request', status: 'cancelled' }], active: [{ label: 'Complete rental', status: 'completed' }] }
+  const updateBooking = async (bookingId, status) => { setUpdatingId(bookingId); setError(''); try { const token = localStorage.getItem('token'); const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'; const response = await fetch(`${apiUrl}/bookings/${bookingId}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ status }) }); const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Could not update booking status.'); setBookings((current) => current.map((booking) => booking._id === bookingId ? { ...booking, status } : booking)) } catch (updateError) { setError(updateError.message) } finally { setUpdatingId('') } }
+  return <main className="seller-page"><header className="catalog-header"><a className="brand catalog-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><nav><a href="/">Home</a><a href="/seller/listings">Seller studio</a><a className="active" href="/seller/bookings">Requests</a></nav><a className="button button-dark header-button" href="/seller/listings/new">Add a piece <ArrowRight size={15} /></a></header><section className="seller-intro seller-booking-intro"><p className="eyebrow dark">Rental requests</p><h1>Every request is a<br /><em>new home story.</em></h1><p>Review, confirm, and follow each piece from its first hello to a happy home.</p></section><section className="seller-content"><div className="seller-list-heading"><div><p className="eyebrow dark">Booking management</p><h2>Customer requests</h2></div><span className="request-count">{bookings.filter((booking) => booking.status === 'pending').length} awaiting review</span></div>{error && <p className="dashboard-message">{error}</p>}{isLoading ? <p className="dashboard-loading">Loading booking requests…</p> : bookings.length ? <div className="seller-booking-list">{bookings.map((booking) => { const furniture = booking.furniture || {}; const customer = booking.customer || {}; const actions = nextActions[booking.status] || []; return <article className="seller-booking-card" key={booking._id}><img src={getImage(furniture)} alt={furniture.title || 'Furniture'} /><div className="seller-booking-info"><p className="booking-status" data-status={booking.status}>{booking.status}</p><h3>{furniture.title || 'Furniture reservation'}</h3><p>Requested by {customer.fullName || 'Customer'} · {customer.email || 'Email unavailable'}</p><div className="seller-booking-meta"><span>{booking.rentalMonths} month rental</span><span>Starts {booking.startDate ? new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(booking.startDate)) : 'TBC'}</span><strong>₹{Number(booking.totalAmount || 0).toLocaleString('en-IN')}</strong></div></div><div className="seller-request-actions">{actions.length ? actions.map((action) => <button type="button" className={action.status === 'cancelled' ? 'danger-action' : ''} disabled={updatingId === booking._id} onClick={() => updateBooking(booking._id, action.status)} key={action.status}>{updatingId === booking._id ? 'Updating…' : action.label}</button>) : <span>{booking.status === 'completed' ? 'Rental complete' : 'Request cancelled'}</span>}</div></article> })}</div> : !error && <div className="empty-state"><h2>No requests just yet.</h2><p>Once customers discover your pieces, their rental requests will appear here.</p><a className="button button-dark" href="/seller/listings/new">Add furniture <ArrowRight size={17} /></a></div>}</section><footer><a className="brand footer-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><p>Furniture that feels like home.</p><span>© 2026 FurniFlow</span></footer></main>
+}
+
+function SellerListingFormPage() {
+  const [formData, setFormData] = useState({ title: '', description: '', category: 'Chairs', pricePerMonth: '', securityDeposit: '', quantity: '1', condition: 'like_new', city: '', pickupAddress: '', imageUrl: '' })
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const updateField = (event) => setFormData((current) => ({ ...current, [event.target.name]: event.target.value }))
+  const submitListing = async (event) => { event.preventDefault(); setError(''); setIsSubmitting(true); try { const token = localStorage.getItem('token'); const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'; const { imageUrl, ...listingData } = formData; const response = await fetch(`${apiUrl}/furniture`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...listingData, pricePerMonth: Number(listingData.pricePerMonth), securityDeposit: Number(listingData.securityDeposit), quantity: Number(listingData.quantity), images: imageUrl ? [{ url: imageUrl }] : [] }) }); const result = await response.json(); if (!response.ok) throw new Error(result.message || result.errors?.[0]?.msg || 'Could not create listing.'); window.location.assign('/seller/listings') } catch (submitError) { setError(submitError.message); setIsSubmitting(false) } }
+  return <main className="seller-page"><header className="catalog-header"><a className="brand catalog-brand" href="/"><span className="brand-mark">F</span> Furni<span>Flow</span></a><a className="back-link" href="/seller/listings">← Back to inventory</a></header><section className="seller-form-wrap"><p className="eyebrow dark">New furniture listing</p><h1>Share a piece<br />worth <em>living with.</em></h1><form className="seller-form" onSubmit={submitListing}><div className="field-group"><label>Piece name</label><input name="title" value={formData.title} onChange={updateField} required /></div><div className="field-group"><label>Description</label><textarea name="description" value={formData.description} onChange={updateField} rows="4" required /></div><div className="form-grid"><div className="field-group"><label>Category</label><select name="category" value={formData.category} onChange={updateField}><option>Chairs</option><option>Tables</option><option>Beds</option><option>Storage</option></select></div><div className="field-group"><label>Condition</label><select name="condition" value={formData.condition} onChange={updateField}><option value="new">New</option><option value="like_new">Like new</option><option value="used">Used</option></select></div></div><div className="form-grid"><div className="field-group"><label>Monthly rental price (₹)</label><input type="number" min="1" name="pricePerMonth" value={formData.pricePerMonth} onChange={updateField} required /></div><div className="field-group"><label>Security deposit (₹)</label><input type="number" min="0" name="securityDeposit" value={formData.securityDeposit} onChange={updateField} required /></div></div><div className="form-grid"><div className="field-group"><label>Quantity</label><input type="number" min="1" name="quantity" value={formData.quantity} onChange={updateField} required /></div><div className="field-group"><label>City</label><input name="city" value={formData.city} onChange={updateField} required /></div></div><div className="field-group"><label>Pickup address</label><textarea name="pickupAddress" value={formData.pickupAddress} onChange={updateField} rows="2" required /></div><div className="field-group"><label>Image URL (optional)</label><input type="url" name="imageUrl" value={formData.imageUrl} onChange={updateField} placeholder="https://..." /></div>{error && <p className="form-message error-message">{error}</p>}<button className="button button-dark booking-submit" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Publishing…' : 'Publish listing'} <ArrowRight size={17} /></button></form></section></main>
 }
 
 export default App
